@@ -151,7 +151,7 @@ export default function ItemsPage() {
                 placeholder="e.g. Optical Fibre Cable"
               />
             </Field>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <Field label="Unit Rate (INR) *">
                 <input
                   required

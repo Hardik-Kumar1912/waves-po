@@ -178,10 +178,10 @@ export default function NewPOPage() {
                 <tr className="border-b border-gray-200 text-xs uppercase tracking-wider text-gray-500">
                   <th className="text-left pb-2 pr-3 font-semibold whitespace-nowrap">#</th>
                   <th className="text-left pb-2 pr-3 font-semibold whitespace-nowrap">Item</th>
-                  <th className="text-right pb-2 pr-3 font-semibold w-20 whitespace-nowrap">Qty</th>
-                  <th className="text-right pb-2 pr-3 font-semibold w-28 whitespace-nowrap">MRP (INR)</th>
-                  <th className="text-right pb-2 pr-3 font-semibold w-28 whitespace-nowrap">Unit Rate (INR)</th>
-                  <th className="text-right pb-2 font-semibold w-28 whitespace-nowrap">Amount (INR)</th>
+                  <th className="text-right pb-2 pr-3 font-semibold min-w-[100px] whitespace-nowrap">Qty</th>
+                  <th className="text-right pb-2 pr-3 font-semibold min-w-[120px] whitespace-nowrap">MRP (INR)</th>
+                  <th className="text-right pb-2 pr-3 font-semibold min-w-[120px] whitespace-nowrap">Unit Rate (INR)</th>
+                  <th className="text-right pb-2 font-semibold min-w-[120px] whitespace-nowrap">Amount (INR)</th>
                   <th className="pb-2 w-8"></th>
                 </tr>
               </thead>
@@ -211,7 +211,7 @@ export default function NewPOPage() {
                           const val = e.target.value;
                           updateLine(idx, { qty: val === '' ? '' : parseInt(val) || 0 });
                         }}
-                        className={`${inputCls} text-right w-20`}
+                        className={`${inputCls} text-right min-w-[100px] w-full`}
                       />
                     </td>
                     <td className="py-2 pr-3">
@@ -222,7 +222,7 @@ export default function NewPOPage() {
                         value={line.mrpStr}
                         onChange={(e) => updateLine(idx, { mrpStr: e.target.value })}
                         placeholder="—"
-                        className={`${inputCls} text-right w-28`}
+                        className={`${inputCls} text-right min-w-[120px] w-full`}
                       />
                     </td>
                     <td className="py-2 pr-3">
@@ -234,7 +234,7 @@ export default function NewPOPage() {
                         onChange={(e) =>
                           updateLine(idx, { unitRate: parseFloat(e.target.value) || 0 })
                         }
-                        className={`${inputCls} text-right w-28`}
+                        className={`${inputCls} text-right min-w-[120px] w-full`}
                       />
                     </td>
                     <td className="py-2 pr-3 text-right font-mono font-semibold text-gray-800 align-middle">
