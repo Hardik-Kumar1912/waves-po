@@ -6,6 +6,11 @@ export interface IItem {
   unitRate: number;
   mrp?: number;
   taxRate: number;
+  // Inventory fields
+  unit: string;
+  unitsPerCarton: number;
+  currentStock: number;
+  lowStockThreshold?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -16,6 +21,11 @@ const ItemSchema = new Schema<IItem>(
     unitRate: { type: Number, required: true },
     mrp: { type: Number },
     taxRate: { type: Number, default: 18 },
+    // Inventory fields — currentStock is managed by StockIn/Dispatch operations only
+    unit: { type: String, default: 'pcs', trim: true },
+    unitsPerCarton: { type: Number, default: 1 },
+    currentStock: { type: Number, default: 0 },
+    lowStockThreshold: { type: Number },
   },
   { timestamps: true }
 );

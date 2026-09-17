@@ -2,6 +2,20 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { numberToWords } from '@/lib/numberToWords';
+import { Trash2, Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
 interface Supplier { _id: string; name: string }
 interface Item { _id: string; name: string; unitRate: number; mrp?: number; taxRate: number }
@@ -10,7 +24,7 @@ interface LineItem {
   itemId: string;
   description: string;
   qty: number | '';
-  mrpStr: string;   // editable string for MRP input
+  mrpStr: string;
   unitRate: number;
   amount: number;
 }
@@ -134,234 +148,229 @@ export default function NewPOPage() {
   return (
     <div className="max-w-5xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">New Purchase Order</h1>
-        <p className="text-gray-500 text-sm mt-1">Fill in the details below to generate a PO</p>
+        <h1 className="text-2xl font-bold text-slate-900">New Purchase Order</h1>
+        <p className="text-slate-500 text-sm mt-1">Fill in the details below to generate a PO</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-
         {/* ── Header card: Supplier + Tax Rate ── */}
-        <Card title="Order Details">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field label="Supplier *">
-              <select
-                required
-                value={supplierId}
-                onChange={(e) => setSupplierId(e.target.value)}
-                className={selectCls}
-              >
-                <option value="">— Select supplier —</option>
-                {suppliers.map((s) => (
-                  <option key={s._id} value={s._id}>{s.name}</option>
-                ))}
-              </select>
-            </Field>
-            <Field label="GST Rate (%) *">
-              <input
-                type="number"
-                min={0}
-                max={100}
-                step={0.1}
-                value={taxRate}
-                onChange={(e) => setTaxRate(parseFloat(e.target.value) || 0)}
-                className={inputCls}
-              />
-            </Field>
-          </div>
+        <Card className="shadow-sm border-slate-200">
+          <CardHeader className="px-5 py-4 border-b border-slate-100 bg-slate-50/50">
+            <CardTitle className="text-sm font-bold text-slate-600 uppercase tracking-wider">Order Details</CardTitle>
+          </CardHeader>
+          <CardContent className="p-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="supplier" className="text-xs uppercase tracking-wide text-slate-600">Supplier <span className="text-red-500">*</span></Label>
+                <select
+                  id="supplier"
+                  required
+                  value={supplierId}
+                  onChange={(e) => setSupplierId(e.target.value)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <option value="">&mdash; Select supplier &mdash;</option>
+                  {suppliers.map((s) => (
+                    <option key={s._id} value={s._id}>{s.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="taxRate" className="text-xs uppercase tracking-wide text-slate-600">GST Rate (%) <span className="text-red-500">*</span></Label>
+                <Input
+                  id="taxRate"
+                  type="number"
+                  min={0}
+                  max={100}
+                  step={0.1}
+                  value={taxRate}
+                  onChange={(e) => setTaxRate(parseFloat(e.target.value) || 0)}
+                />
+              </div>
+            </div>
+          </CardContent>
         </Card>
 
         {/* ── Line items ── */}
-        <Card title="Line Items">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-200 text-xs uppercase tracking-wider text-gray-500">
-                  <th className="text-left pb-2 pr-3 font-semibold whitespace-nowrap">#</th>
-                  <th className="text-left pb-2 pr-3 font-semibold whitespace-nowrap">Item</th>
-                  <th className="text-right pb-2 pr-3 font-semibold min-w-[100px] whitespace-nowrap">Qty</th>
-                  <th className="text-right pb-2 pr-3 font-semibold min-w-[120px] whitespace-nowrap">MRP (INR)</th>
-                  <th className="text-right pb-2 pr-3 font-semibold min-w-[120px] whitespace-nowrap">Unit Rate (INR)</th>
-                  <th className="text-right pb-2 font-semibold min-w-[120px] whitespace-nowrap">Amount (INR)</th>
-                  <th className="pb-2 w-8"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {lines.map((line, idx) => (
-                  <tr key={idx}>
-                    <td className="py-2 pr-3 text-gray-400 font-mono text-xs align-top pt-3">{idx + 1}</td>
-                    <td className="py-2 pr-3">
-                      <select
-                        value={line.itemId}
-                        onChange={(e) => selectItem(idx, e.target.value)}
-                        className={`${selectCls} min-w-[180px]`}
-                      >
-                        <option value="">— Select item —</option>
-                        {items.map((item) => (
-                          <option key={item._id} value={item._id}>{item.name}</option>
-                        ))}
-                      </select>
-                    </td>
-                    <td className="py-2 pr-3">
-                      <input
-                        type="number"
-                        min={1}
-                        step={1}
-                        value={line.qty}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          updateLine(idx, { qty: val === '' ? '' : parseInt(val) || 0 });
-                        }}
-                        className={`${inputCls} text-right min-w-[100px] w-full`}
-                      />
-                    </td>
-                    <td className="py-2 pr-3">
-                      <input
-                        type="number"
-                        min={0}
-                        step={0.01}
-                        value={line.mrpStr}
-                        onChange={(e) => updateLine(idx, { mrpStr: e.target.value })}
-                        placeholder="—"
-                        className={`${inputCls} text-right min-w-[120px] w-full`}
-                      />
-                    </td>
-                    <td className="py-2 pr-3">
-                      <input
-                        type="number"
-                        min={0}
-                        step={0.01}
-                        value={line.unitRate || ''}
-                        onChange={(e) =>
-                          updateLine(idx, { unitRate: parseFloat(e.target.value) || 0 })
-                        }
-                        className={`${inputCls} text-right min-w-[120px] w-full`}
-                      />
-                    </td>
-                    <td className="py-2 pr-3 text-right font-mono font-semibold text-gray-800 align-middle">
-                      {fmt(line.amount)}
-                    </td>
-                    <td className="py-2 align-middle">
-                      {lines.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => removeLine(idx)}
-                          className="text-red-400 hover:text-red-600 text-lg leading-none"
-                          title="Remove row"
+        <Card className="shadow-sm border-slate-200 overflow-hidden">
+          <CardHeader className="px-5 py-4 border-b border-slate-100 bg-slate-50/50">
+            <CardTitle className="text-sm font-bold text-slate-600 uppercase tracking-wider">Line Items</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead className="w-12 text-center min-w-[3rem]">#</TableHead>
+                    <TableHead className="min-w-[200px]">Item</TableHead>
+                    <TableHead className="w-28 text-right min-w-[6rem]">Qty</TableHead>
+                    <TableHead className="w-32 text-right min-w-[8rem]">MRP (INR)</TableHead>
+                    <TableHead className="w-32 text-right min-w-[8rem]">Unit Rate (INR)</TableHead>
+                    <TableHead className="w-32 text-right min-w-[8rem]">Amount (INR)</TableHead>
+                    <TableHead className="w-12 min-w-[3rem]"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {lines.map((line, idx) => (
+                    <TableRow key={idx} className="hover:bg-slate-50/50">
+                      <TableCell className="text-center text-slate-400 font-mono text-xs">{idx + 1}</TableCell>
+                      <TableCell>
+                        <select
+                          value={line.itemId}
+                          onChange={(e) => selectItem(idx, e.target.value)}
+                          className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 min-w-[180px]"
                         >
-                          ×
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <button
-            type="button"
-            onClick={addLine}
-            className="mt-3 text-[#0058a4] text-sm font-medium hover:underline"
-          >
-            + Add another item
-          </button>
+                          <option value="">&mdash; Select item &mdash;</option>
+                          {items.map((item) => (
+                            <option key={item._id} value={item._id}>{item.name}</option>
+                          ))}
+                        </select>
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="number"
+                          min={1}
+                          step={1}
+                          value={line.qty}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            updateLine(idx, { qty: val === '' ? '' : parseInt(val) || 0 });
+                          }}
+                          className="h-9 text-right min-w-[80px]"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="number"
+                          min={0}
+                          step={0.01}
+                          value={line.mrpStr}
+                          onChange={(e) => updateLine(idx, { mrpStr: e.target.value })}
+                          placeholder="—"
+                          className="h-9 text-right min-w-[100px]"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="number"
+                          min={0}
+                          step={0.01}
+                          value={line.unitRate || ''}
+                          onChange={(e) => updateLine(idx, { unitRate: parseFloat(e.target.value) || 0 })}
+                          className="h-9 text-right min-w-[100px]"
+                        />
+                      </TableCell>
+                      <TableCell className="text-right font-mono font-semibold text-slate-800">
+                        {fmt(line.amount)}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {lines.length > 1 && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeLine(idx)}
+                            className="text-red-400 hover:text-red-600 hover:bg-red-50 h-8 w-8"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+            <div className="p-4 border-t border-slate-100 bg-slate-50/50">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={addLine}
+                className="text-[#0058a4] hover:text-[#0058a4] hover:bg-[#0058a4]/10 h-8"
+              >
+                <Plus className="h-4 w-4 mr-1.5" />
+                Add another item
+              </Button>
+            </div>
+          </CardContent>
         </Card>
 
         {/* ── Terms & Totals ── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <Card title="Terms &amp; Conditions">
-            <textarea
-              rows={5}
-              value={terms}
-              onChange={(e) => setTerms(e.target.value)}
-              placeholder="Optional — payment terms, delivery conditions, etc."
-              className={`${inputCls} resize-none`}
-            />
-            <div className="mt-2 text-right">
-              <button
-                type="button"
-                onClick={() => setTerms("Only fresh stock will be accepted; expired or near-expiry material will be rejected.")}
-                className="text-xs font-medium text-[#0058a4] hover:underline"
-              >
-                + Insert &quot;Fresh Stock&quot; clause
-              </button>
-            </div>
+          <Card className="shadow-sm border-slate-200">
+            <CardHeader className="px-5 py-4 border-b border-slate-100 bg-slate-50/50">
+              <CardTitle className="text-sm font-bold text-slate-600 uppercase tracking-wider">Terms &amp; Conditions</CardTitle>
+            </CardHeader>
+            <CardContent className="p-5 flex flex-col gap-3">
+              <Textarea
+                rows={5}
+                value={terms}
+                onChange={(e) => setTerms(e.target.value)}
+                placeholder="Optional — payment terms, delivery conditions, etc."
+                className="resize-none"
+              />
+              <div className="text-right">
+                <button
+                  type="button"
+                  onClick={() => setTerms("Only fresh stock will be accepted; expired or near-expiry material will be rejected.")}
+                  className="text-xs font-medium text-[#0058a4] hover:underline"
+                >
+                  + Insert &quot;Fresh Stock&quot; clause
+                </button>
+              </div>
+            </CardContent>
           </Card>
 
-          <Card title="Summary">
-            <div className="space-y-2">
-              <SummaryRow label="Basic Amount" value={`INR ${fmt(basicAmount)}`} />
-              <SummaryRow label={`GST (${taxRate}%)`} value={`INR ${fmt(gstAmount)}`} />
-              <div className="border-t border-gray-200 pt-2 mt-2">
-                <SummaryRow
-                  label="Grand Total"
-                  value={`INR ${fmt(grandTotal)}`}
-                  bold
-                />
+          <Card className="shadow-sm border-slate-200">
+            <CardHeader className="px-5 py-4 border-b border-slate-100 bg-slate-50/50">
+              <CardTitle className="text-sm font-bold text-slate-600 uppercase tracking-wider">Summary</CardTitle>
+            </CardHeader>
+            <CardContent className="p-5">
+              <div className="space-y-3">
+                <div className="flex justify-between text-sm text-slate-600">
+                  <span>Basic Amount</span>
+                  <span className="font-mono">INR {fmt(basicAmount)}</span>
+                </div>
+                <div className="flex justify-between text-sm text-slate-600">
+                  <span>GST ({taxRate}%)</span>
+                  <span className="font-mono">INR {fmt(gstAmount)}</span>
+                </div>
+                <div className="border-t border-slate-200 pt-3 mt-3">
+                  <div className="flex justify-between text-sm font-bold text-[#0058a4]">
+                    <span>Grand Total</span>
+                    <span className="font-mono text-base">INR {fmt(grandTotal)}</span>
+                  </div>
+                </div>
+                {grandTotal > 0 && (
+                  <p className="text-xs italic text-slate-400 mt-3 leading-relaxed">
+                    {numberToWords(grandTotal)}
+                  </p>
+                )}
               </div>
-              {grandTotal > 0 && (
-                <p className="text-xs italic text-gray-400 mt-3 leading-relaxed">
-                  {numberToWords(grandTotal)}
-                </p>
-              )}
-            </div>
+            </CardContent>
           </Card>
         </div>
 
         {/* ── Submit ── */}
         <div className="flex flex-wrap justify-end gap-3 pb-4">
-          <button
+          <Button
             type="button"
+            variant="outline"
             onClick={() => router.push('/po')}
-            className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition"
+            className="px-6"
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
             disabled={submitting}
-            className="px-8 py-2.5 bg-[#0058a4] text-white rounded-lg text-sm font-semibold hover:bg-blue-900 transition shadow disabled:opacity-50"
+            className="px-8 bg-[#0058a4] hover:bg-[#0058a4]/90 text-white shadow-sm"
           >
-            {submitting ? 'Creating PO…' : 'Create Purchase Order'}
-          </button>
+            {submitting ? 'Creating PO...' : 'Create Purchase Order'}
+          </Button>
         </div>
       </form>
     </div>
   );
 }
-
-// ── Sub-components ────────────────────────────────────────────────────────────
-
-function Card({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-      <div className="px-5 py-3 border-b border-gray-100 bg-gray-50">
-        <h2 className="text-xs font-bold text-gray-600 uppercase tracking-wider">{title}</h2>
-      </div>
-      <div className="px-5 py-4">{children}</div>
-    </div>
-  );
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">{label}</label>
-      {children}
-    </div>
-  );
-}
-
-function SummaryRow({ label, value, bold }: { label: string; value: string; bold?: boolean }) {
-  return (
-    <div className={`flex justify-between text-sm ${bold ? 'font-bold text-[#0058a4]' : 'text-gray-700'}`}>
-      <span>{label}</span>
-      <span className="font-mono">{value}</span>
-    </div>
-  );
-}
-
-const inputCls =
-  'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0058a4] focus:border-transparent transition';
-const selectCls =
-  'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#0058a4] focus:border-transparent transition';
